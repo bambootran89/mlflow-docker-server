@@ -1,7 +1,7 @@
 version: '3.0'
 services:
   db:
-    image: mlflow_postgres:15.1
+    image: mlflow_postgres:16.4
     container_name: mlflow_postgres
     build:
       context: .
