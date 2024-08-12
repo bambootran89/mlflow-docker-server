@@ -16,6 +16,18 @@ See [MLflow Tracking Servers](https://mlflow.org/docs/latest/tracking.html#mlflo
 
 
 ## Run
+I. lunch minio as s3 server
+
+```
+docker-compose -f docker-compose-minio.yaml up
+
+```
+- go to 127.0.01:9001  (user/pass: minioadmin/minioadmin)
+| create (AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY) and bucket for next step
+   
+  
+
+II. Lunch MLflow
 
 The required  environment variables are specified in the standard docker compose `.env` file.
 Copy one of the two `.env` template files to `.env`, make appropriate changes and then run docker-compose.
@@ -38,16 +50,16 @@ CONTAINER ID  IMAGE                  COMMAND                  PORTS             
 3b4eb5a2026e  mlflow_postgres:16.4    "docker-entrypoint.s…"   0.0.0.0:5432->5432/tcp   mlflow_postgres
 ```
 If you don't see the `mlflow_server` container, just run the docker-compose command again. 
-It failed to start because `mlflow_mysql` wasn't up yet. It's a TODO to add a wait-until-alive feature.
+It failed to start because `mlflow_postgres` wasn't up yet. It's a TODO to add a wait-until-alive feature.
 
 ## Environment variables
 
 | Env Var  | Description  | Default  |
 |:--|:--|:--|
-| **MySQL**  |   |   |
-| MYSQL_ROOT_PASSWORD | MySQL root password  | efcodd   |
-| HOST_MYSQL_PORT  | Port exposed on host  | 5306  |
-|  HOST_MYSQL_DATA_DIR  | Host mounted volume path |   |
+| **PostgreSQL**  |   |   |
+| POSTGRES_USER | PostgreSQL postgres password  | efcodd   |
+| HOST_POSTGRES_PORT  | Port exposed on host  | 5306  |
+|  HOST_POSTGRES_DATA_DIR  | Host mounted volume path |   |
 | **MLflow**  |   |   |
 | MLFLOW_ARTIFACT_URI  | Base URI for artifacts - either S3 or local path|   |
 | HOST_MLFLOW_PORT  | Port exposed on host for tracking server  | 5005  |
@@ -58,10 +70,11 @@ It failed to start because `mlflow_mysql` wasn't up yet. It's a TODO to add a wa
 
 **Sample local .env**
 ```
-# MySQL 
-MYSQL_ROOT_PASSWORD=efcodd
-HOST_MYSQL_PORT=5306
-HOST_MYSQL_DATA_DIR=/opt/mlflow_docker/mysql
+# PostgreSQL 
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=efcodd
+HOST_POSTGRES_PORT=5306
+HOST_POSTGRES_DATA_DIR=/opt/mlflow_docker/postgres
 
 # MLflow tracking server
 MLFLOW_ARTIFACT_URI=/opt/mlflow_docker/mlflow_server
@@ -70,10 +83,11 @@ HOST_MLFLOW_PORT=5005
 
 **Sample S3 .env**
 ```
-# MySQL 
-MYSQL_ROOT_PASSWORD=efcodd
-HOST_MYSQL_PORT=5306
-HOST_MYSQL_DATA_DIR=/opt/mlflow_docker/mysql
+# PostgreSQL 
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=efcodd
+HOST_POSTGRES_PORT=5306
+HOST_POSTGRES_DATA_DIR=/opt/mlflow_docker/postgres
 
 # MLflow tracking server
 MLFLOW_ARTIFACT_URI=s3://my-bucket/mlflow
@@ -84,37 +98,6 @@ AWS_ACCESS_KEY_ID=my_access_key_id
 AWS_SECRET_ACCESS_KEY=my_secret_access_key
 ```
 
-## Check server health
-
-**Database**
-```
-docker exec -it mlflow_mysql mysql \
-  -u root --password=efcodd --port=5306 \
-  -e "use mlflow ; select * from experiments"
-```
-```
-+---------------+---------+-------------------------------------+-----------------+
-| experiment_id | name    | artifact_location                   | lifecycle_stage |
-+---------------+---------+-------------------------------------+-----------------+
-|             0 | Default | /opt/mlflow_docker/mlflow_server/0  | active          |
-+---------------+---------+-------------------+-----------------+-----------------+
-```
-
-**Tracking server**
-```
-curl http://localhost:5005/api/2.0/mlflow/experiments/list
-```
-```
-{
-  "experiments": [
-    {
-      "experiment_id": "0",
-      "name": "Default",
-      "artifact_location": "/opt/mlflow_docker/mlflow_server/0",
-      "lifecycle_stage": "active"
-    }
-  ]
-```
 
 ## Login to containers
 
@@ -123,14 +106,11 @@ You can check things out inside the containers.
 docker exec -i -t mlflow_server /bin/bash
 ```
 ```
-docker exec -i -t mlflow_mysql /bin/bash
+docker exec -i -t mlflow_postgres /bin/bash
 ```
+## The sample output of MLflow 
+![plot](./figs/output_example.png)
 
-## Files
+## The result of MLflow Authentication
+![plot](./figs/auth_result.png)
 
-|   | Dockerfile   | Compose | Note |
-|---|---|---|--|
-| General  |  | [docker-compose.yaml](docker-compose.yaml)  | Basic config for MySQL and MLflow server |
-|MySQL  | [Dockerfile-mysql](Dockerfile-mysql)  | | MySQL-specific configs |
-| MLflow Local  |[Dockerfile-mlflow-local](Dockerfile-mlflow-local)  |[docker-compose-local.yaml](docker-compose-local.yaml)  | Local-specific configs|
-| MLflow S3 | [Dockerfile-mlflow-s3](Dockerfile-mlflow-s3)  |[docker-compose-s3.yaml](docker-compose-s3.yaml)  | S3-specific configs|
