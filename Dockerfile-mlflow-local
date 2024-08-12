@@ -1,0 +1,16 @@
+FROM python:3.11
+  
+RUN apt-get update
+RUN pip install mlflow
+RUN pip install mysqlclient
+RUN pip install psycopg2
+
+RUN mkdir -p /home/mlflow
+COPY src/run_server.sh /home/mlflow
+COPY my_auth_config.ini /home/mlflow/my_auth_config.ini
+WORKDIR /home/mlflow
+
+ARG ARG_MLFLOW_ARTIFACT_URI
+RUN mkdir -p $ARG_MLFLOW_ARTIFACT_URI
+
+ENTRYPOINT cd /home/mlflow ; ./run_server.sh 

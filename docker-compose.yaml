@@ -1,0 +1,41 @@
+version: '3.0'
+services:
+  db:
+    image: mlflow_postgres:15.1
+    container_name: mlflow_postgres
+    build:
+      context: .
+      dockerfile: Dockerfile-postgres
+    environment:
+     - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+     - POSTGRES_USER=${POSTGRES_USER}
+     - POSTGRES_DB=metastore_db
+    ports:
+     - '${HOST_POSTGRES_PORT}:5432'
+    volumes:
+     - ${HOST_POSTGRES_DATA_DIR}/data:/var/lib/postgresql/data
+     - $PWD/src/sql:/docker-entrypoint-initdb.d
+  mlflow:
+    image: mlflow_server:latest
+    container_name: mlflow_server
+    build:
+      context: .
+      #dockerfile: Dockerfile-mlflow-local 
+      args:
+        - ARG_MLFLOW_ARTIFACT_URI=$MLFLOW_ARTIFACT_URI
+    depends_on:
+      - db
+    environment:
+      - PSQL_DB_USERNAME=${POSTGRES_USER}
+      - PSQL_DB_PASSWORD=${POSTGRES_PASSWORD}
+      - PSQL_DB_HOST=db
+      - PSQL_DB_PORT=5432
+      - PSQL_MLFLOW_DATABASE=mlflow
+      - PSQL_AUTH_DATABASE=auth
+      - MLFLOW_ARTIFACT_URI=${MLFLOW_ARTIFACT_URI}
+      - MLFLOW_S3_ENDPOINT_URL=${MLFLOW_S3_ENDPOINT_URL}
+      #https://mlflow.org/docs/latest/tracking/artifacts-stores.html#artifacts-store-supported-storages
+      #- MLFLOW_S3_IGNORE_TLS=true
+      #- AWS_CA_BUNDLE=/some/ca/bundle.pem
+    ports:
+     - "${HOST_MLFLOW_PORT}:5000"
