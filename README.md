@@ -1,5 +1,38 @@
 
-# MLflow Docker - MLflow Tracking Server and PostgreSQL 
+# Frist: [Remote Experiment Tracking with MLflow Tracking Server](https://mlflow.org/docs/latest/tracking/tutorials/remote-server.html) 
+
+How does it work?
+
+The following picture depicts the architecture of using a remote MLflow Tracking Server with PostgreSQL and S3
+![plot](./figs/scenario_5.png)
+
+
+[MLflow Authentication](https://mlflow.org/docs/latest/auth/index.html)
+
+* when we do Launch the tracking server when THURN-OFF authentication:
+ 
+ ```
+  mlflow server \
+  --backend-store-uri postgresql://user:password@localhost:5432/mlflowdb \
+  --artifacts-destination s3://bucket \
+  --host 0.0.0.0 \
+  --port 5000
+
+ ```
+* when we do Launch the tracking server when TURN-ON authentication: 
+ 
+ ```
+  mlflow server \
+  --app-name basic-auth
+  --backend-store-uri postgresql://user:password@localhost:5432/mlflowdb \
+  --artifacts-destination s3://bucket \
+  --host 0.0.0.0 \
+  --port 5000
+
+ ```
+
+
+# Second: MLflow Docker - MLflow Tracking Server and PostgreSQL 
 
 ## Overview
 
