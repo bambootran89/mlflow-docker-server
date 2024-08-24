@@ -35,13 +35,13 @@ Copy one of the two `.env` template files to `.env`, make appropriate changes an
 To launch a local MLflow server:
 ```
 change .env **** base on .env-local-template
-docker-compose -f docker-compose.yaml -f docker-compose-local.yaml  up -d 
+docker compose -f docker-compose.yaml -f docker-compose-local.yaml  up -d 
 ```
 
 To launch an S3 MLflow server:
 ```
 change .env ***** base on .env-s3-template
-docker-compose -f docker-compose.yaml -f docker-compose-s3.yaml up -d 
+docker compose -f docker-compose.yaml -f docker-compose-s3.yaml up -d 
 ```
 You will then see two containers:
 ```
